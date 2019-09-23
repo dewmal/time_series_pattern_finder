@@ -16,6 +16,6 @@ def peak_detect(price, order):
     start_idx = min(current_idx)
     end_idx = max(current_idx)
 
-    current_pat = price.values[current_idx]
+    current_pat = price[current_idx]
 
-    return idx, current_pat, start_idx, end_idx
+    return current_idx, current_pat, start_idx, end_idx
