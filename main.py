@@ -1,11 +1,10 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.signal import argrelextrema
-import matplotlib.pyplot as plt
 
 # import our historical data
 from app.pattern_utils import peak_detect
-from app.patterns import is_gartley, is_butterfly, is_crab, is_bat
+from app.patterns.flag_patterns import is_rectangle, is_pennant, is_wedge
 
 data = pd.read_csv("data/EURUSD_Candlestick_1_M_BID_01.09.2019-21.09.2019.csv")
 data.columns = ['Date', 'open', 'high', 'low', 'close', 'vol']
@@ -20,7 +19,8 @@ data = data[['open', 'high', 'low', 'close', 'vol']]
 price = data.close  # .iloc[:500]
 order = 10
 plt.ion()
-for i in range(100, len(price)):
+error_allowed = 0.00035 / 100
+for i in range(1200, len(price)):
     values = price.values[:i]
     current_idx, current_pat, start_idx, end_idx = peak_detect(values,
                                                                order=order,
@@ -45,29 +45,34 @@ for i in range(100, len(price)):
     D_y = values[D_x]
     E_y = values[E_x]
 
+    x_pos = [A_x, B_x, C_x, D_x, E_x]
+    y_pos = [A_y, B_y, C_y, D_y, E_y]
+
+    rectangle = is_rectangle(x_pos, y_pos, error_allowed)
+    pennant = is_pennant(x_pos, y_pos, error_allowed)
+    wedge = is_wedge(x_pos, y_pos, error_allowed)
+
+    flags = np.array([0, 0, wedge])
+    labels = ['Rectangle', 'Pennant', 'Wedge']
+
+    BC_x = [A_x, C_x]
     CE_x = [C_x, E_x]
     BD_x = [B_x, D_x]
 
+    AC_y = values[AC_x]
     CE_y = values[CE_x]
     BD_y = values[BD_x]
 
-    if A_y < B_y < C_y and A_y < D_y < E_y:
-        label = "Bullish "
-        plt.clf()
-        plt.title(label=label)
-        plt.plot(np.arange(start_idx, i + abs(A_x - B_x) + 10), price.values[start_idx:i + abs(A_x - B_x) + 10])
-        plt.scatter(current_idx, current_pat, c="r")
-        plt.plot(CE_x, CE_y, c="r", linewidth=2)
-        plt.plot(BD_x, BD_y, c="g", linewidth=2)
-        plt.show()
-        plt.pause(0.005)
-    elif A_y > C_y > B_y and A_y > E_y > D_y:
-        label = "Bearish "
-        plt.clf()
-        plt.title(label=label)
-        plt.plot(np.arange(start_idx, i + abs(A_x - B_x) + 10), price.values[start_idx:i + abs(A_x - B_x) + 10])
-        plt.scatter(current_idx, current_pat, c="r")
-        plt.plot(CE_x, CE_y, c="r", linewidth=2)
-        plt.plot(BD_x, BD_y, c="g", linewidth=2)
-        plt.show()
-        plt.pause(0.005)
+    if np.any(flags == 1) or np.any(flags == -1):
+        for j in range(0, len(flags)):
+            if flags[j] == 1 or flags[j] == -1:
+                sense = 'Bearish ' if flags[j] == -1 else 'Bullish '
+                label = sense + labels[j] + ' Found'
+                plt.clf()
+                plt.title(label)
+                plt.plot(np.arange(start_idx, i + 50), price.values[start_idx:i + 50])
+                plt.scatter(current_idx, current_pat, c='r')
+                plt.plot(CE_x, CE_y, c="r", linewidth=2)
+                plt.plot(BD_x, BD_y, c="g", linewidth=2)
+                plt.show()
+                plt.pause(0.05)
