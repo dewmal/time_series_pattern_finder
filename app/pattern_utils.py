@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.signal import argrelextrema
 
 
-def peak_detect(price, order):
+def peak_detect(price, order, pattern_size=5):
     # Find relative extrema
     max_idx = list(argrelextrema(price, np.greater, order=order)[0])
     min_idx = list(argrelextrema(price, np.less, order=order)[0])
@@ -11,7 +11,7 @@ def peak_detect(price, order):
     idx = max_idx + min_idx + [len(price) - 1]
     idx.sort()
 
-    current_idx = idx[-5:]
+    current_idx = idx[-pattern_size:]
 
     start_idx = min(current_idx)
     end_idx = max(current_idx)
