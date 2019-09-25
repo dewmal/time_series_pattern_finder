@@ -1,6 +1,13 @@
+import math
+
 import numpy as np
 import pandas as pd
 from scipy.signal import argrelextrema
+
+
+def get_angle(a, b, c):
+    ang = math.degrees(math.atan2(c[1] - b[1], c[0] - b[0]) - math.atan2(a[1] - b[1], a[0] - b[0]))
+    return ang + 360 if ang < 0 else ang
 
 
 def peak_detect(price, order, pattern_size=5):
