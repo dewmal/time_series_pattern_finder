@@ -5,3 +5,5 @@ matplotlib
 sympy
 tqdm
 mpl-finance
+pyti
+backtrader[plotting]
