@@ -1,18 +1,15 @@
 import timeit
-from math import atan
+import traceback
 
-from pyti.simple_moving_average import simple_moving_average
-from sympy import Point, Polygon
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from pyti.simple_moving_average import simple_moving_average
+from pyti.exponential_moving_average import exponential_moving_average
+
+from app.patterns.moving_avg_patterns import moving_average_signal
 
 # import our historical data
-from tqdm import tqdm
-
-from app.pattern_utils import peak_detect, get_angle
-from app.patterns.flag_patterns import is_rectangle, is_pennant, is_wedge
-from app.patterns.moving_avg_patterns import moving_average_signal
 
 data = pd.read_csv("data/EURUSD_Candlestick_1_M_BID_01.09.2019-21.09.2019.csv")
 data.columns = ['Date', 'open', 'high', 'low', 'close', 'vol']
@@ -37,10 +34,14 @@ for idx in range(100, len(price)):
     try:
         values = price.values[idx - 100:idx]
         feature_values = price.values[idx - 100:idx + 20]
-        sma_one = simple_moving_average(values, 14)[22:]
-        sma_two = simple_moving_average(values, 21)[22:]
-        values = values[22:]
-        feature_values = feature_values[22:]
+        sma_one = simple_moving_average(values, 14)
+        sma_two = exponential_moving_average(values, 21)
+
+        max_cut_point = 21
+
+        values, feature_values, sma_one, sma_two = values[max_cut_point:], feature_values[max_cut_point:], sma_one[
+                                                                                                           max_cut_point:], sma_two[
+                                                                                                                            max_cut_point:]
 
         pattern, x_point = moving_avg_direction = moving_average_signal(values, sma_one, sma_two,
                                                                         consecutive_error=consecutive_error,
@@ -64,5 +65,7 @@ for idx in range(100, len(price)):
         #
     except Exception as e:
         print(e)
+        e.with_traceback(traceback)
+        traceback.print_tb(e.__traceback__)
     finally:
         stop = timeit.default_timer()
