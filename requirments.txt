@@ -7,3 +7,5 @@ tqdm
 mpl-finance
 pyti
 backtrader[plotting]
+ax-platform
+torch

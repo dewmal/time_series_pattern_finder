@@ -1,10 +1,11 @@
 import numpy as np
 
 
-def moving_average_signal(values, sma_one, sma_two, number_of_twisted_points=3, from_last_twisted_point_to_forward=3,
+def moving_average_signal(values, ema_fast, sma_slow, number_of_twisted_points=3, from_last_twisted_point_to_forward=3,
                           consecutive_error=10 / 100, direction_error=10 / 100):
     x_point = np.nan
-    diffs_in_there = np.array(sma_one > sma_two)
+    # print(ema_fast, sma_slow)
+    diffs_in_there = np.array(ema_fast > sma_slow)
     twisted_points = []
     for idx in range(1, len(diffs_in_there)):
         if diffs_in_there[idx - 1] != diffs_in_there[idx]:
@@ -17,11 +18,11 @@ def moving_average_signal(values, sma_one, sma_two, number_of_twisted_points=3, 
         consider_line_x_range = np.array([idx for idx in range(x_point, len(values) - 1)])
 
         if len(consider_line_x_range) > from_last_twisted_point_to_forward:
-            last_diffs = (sma_one[consider_line_x_range] - sma_two[consider_line_x_range]) * 100 / np.max(values)
+            last_diffs = (ema_fast[consider_line_x_range] - sma_slow[consider_line_x_range]) * 100 / np.max(values)
 
             consecutives = []
             for ivx in range(1, len(last_diffs)):
-                diff = last_diffs[ivx - 1] / last_diffs[ivx]
+                diff = last_diffs[ivx] if last_diffs[ivx] == 0 else last_diffs[ivx - 1] / last_diffs[ivx]
                 consecutives.append(diff < 1)
             consecutives = np.array(consecutives)
             consecutive_avg = len(np.where(consecutives == True)[0]) * 100 / len(consecutives)
